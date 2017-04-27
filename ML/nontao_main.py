@@ -64,7 +64,7 @@ def make_grid(points, values, k, h=50):
     xs = np.linspace(min(points[:, 0]), max(points[:, 0]), h)
     ys = np.linspace(min(points[:, 1]), max(points[:, 1]), h)
     xx, yy = np.meshgrid(xs, ys)
-    grid = np.zeros(xx.shape, dtype=int)
+    grid = np.zeros(xx.shape, dtype=float)
     for i, x in enumerate(xs):
         for j, y in enumerate(ys):
             p = np.array([x, y])
@@ -72,20 +72,20 @@ def make_grid(points, values, k, h=50):
     return xx, yy, grid
 
 
-def plot_grid(points, values, k, cm, ttl, name):
+def plot_grid(points, values, k, colormap, title, filename):
     fig = plt.figure()
     xx, yy, grid = make_grid(points, values, k)
-    plt.pcolormesh(xx, yy, grid, cmap=cm, alpha=.5)
+    plt.pcolormesh(xx, yy, grid, cmap=colormap, alpha=.5)
     plt.scatter(points[:, 0], points[:, 1],
-                c=values, cmap=cm,
+                c=values, cmap=colormap,
                 s=400, edgecolor='black', linewidth='1', alpha=.8)
     plt.xlim(np.min(xx), np.max(xx))
     plt.ylim(np.min(yy), np.max(yy))
     plt.colorbar()
-    plt.title(ttl)
+    plt.title(title)
     plt.xlabel("Longitude")
     plt.ylabel("Latitude")
-    plt.savefig('plots/nontao_%s.png' % name)
+    plt.savefig('plots/nontao_%s.png' % filename)
     return fig
 
 
@@ -95,22 +95,24 @@ now = dt.datetime(1, 1, 1,
                   dt.datetime.now().hour,
                   dt.datetime.now().minute,
                   dt.datetime.now().second)
-instant = dt.datetime.combine(dt.date.min, dt.time(17, 30))
-panel = make_panel(machines, data, instant)  # or use now
+instant = dt.datetime.combine(dt.date.min, dt.time(10, 30))
+# uncoment to use local time
+# instant = now
+panel = make_panel(machines, data, instant)
 coordinates, wait_time, free_prob = calc_results(panel)
-plot_grid(coordinates,
-          wait_time,
-          3,
-          ListedColormap(['darkgreen',
-                          'green',
-                          'orange',
-                          'red',
-                          'darkred']),
-          "Mean wait time (s)",
-          'wait_time')
-plot_grid(coordinates,
-          free_prob,
-          3,
-          'Blues',
-          "Free probability",
-          'free_prob')
+plot_grid(points=coordinates,
+          values=wait_time,
+          k=3,
+          colormap=ListedColormap(['darkgreen',
+                                   'green',
+                                   'orange',
+                                   'red',
+                                   'darkred']),
+          title="Mean wait time (s) at " + str(instant.time()),
+          filename='wait_time')
+plot_grid(points=coordinates,
+          values=free_prob,
+          k=3,
+          colormap='Blues',
+          title="Free probability at " + str(instant.time()),
+          filename='free_prob')
